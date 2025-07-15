@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,6 +24,7 @@ const IconCard = ({
   </div>;
 const HomePage = () => {
   const { user } = useAuth();
+  const [showAdminDialog, setShowAdminDialog] = useState(false);
   
   return <div className="min-h-screen bg-white">
       {/* Header */}

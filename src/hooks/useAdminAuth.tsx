@@ -41,17 +41,7 @@ export const useAdminAuth = () => {
 
         if (!profile) {
           console.log('Profile not found, creating new one');
-          const { data, error } = await supabase
-            .from('rich_text_content')
-            .insert([{
-              user_id: user.id,
-              content: 'Teste de conteúdo',
-              created_at: new Date().toISOString()
-            }])
-            .select()
-            .single();
-          console.log('Resultado do insert:', { data, error });
-          // Assuming a default role or that the profile will be updated later
+          // Instead of trying to insert into non-existent table, just set admin to false
           setIsAdmin(false); // Default to not admin if profile is new
         } else {
           console.log('Profile found:', profile);

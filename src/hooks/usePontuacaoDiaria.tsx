@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { WeeklyRanking } from '@/types/points';
 
-interface PontuacaoDiaria {
+export interface PontuacaoDiaria {
   id: string;
   user_id: string;
   data: string;
@@ -137,10 +137,46 @@ export function usePontuacaoDiaria() {
     }
   };
 
+  const pontuacaoHoje = pontuacao.find(p => p.data === format(new Date(), 'yyyy-MM-dd'));
+  const historicoPontuacao = pontuacao;
+  const rankingSemanal = ranking;
+  const isLoadingHoje = isLoading;
+  const isLoadingHistorico = isLoading;
+  const isLoadingRanking = isLoading;
+  
+  const getFeedbackPontuacao = (pontos: number) => {
+    if (pontos >= 100) {
+      return {
+        emoji: '🏆',
+        mensagem: 'Excelente! Você está no topo da sua jornada!',
+        categoria: 'excelente' as const
+      };
+    } else if (pontos >= 60) {
+      return {
+        emoji: '👏',
+        mensagem: 'Muito bem! Continue assim!',
+        categoria: 'medio' as const
+      };
+    } else {
+      return {
+        emoji: '💪',
+        mensagem: 'Vamos com tudo! Cada passo conta!',
+        categoria: 'baixa' as const
+      };
+    }
+  };
+
   return {
     pontuacao,
     ranking,
     isLoading,
-    fetchPontuacao
+    fetchPontuacao,
+    pontuacaoHoje,
+    historicoPontuacao,
+    rankingSemanal,
+    isLoadingHoje,
+    isLoadingHistorico,
+    isLoadingRanking,
+    getFeedbackPontuacao
   };
 }

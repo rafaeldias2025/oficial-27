@@ -242,7 +242,13 @@ const MissaoDia = ({ isVisitor = false }: { isVisitor?: boolean }) => {
           
           {activeTab === 'ranking' && (
             <RankingSemanalPontuacao 
-              dados={rankingSemanal || []}
+              dados={rankingSemanal?.map(item => ({
+                user_id: item.userId,
+                nome: item.name,
+                pontos: [item.weeklyPoints],
+                total_pontos: item.weeklyPoints,
+                media_semanal: item.weeklyPoints
+              })) || []}
               isLoading={isLoadingRanking}
             />
           )}
