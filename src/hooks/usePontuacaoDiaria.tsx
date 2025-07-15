@@ -170,24 +170,31 @@ export const usePontuacaoDiaria = () => {
   });
 
   const getFeedbackPontuacao = (pontos: number) => {
-    if (pontos >= 21) {
+    if (pontos >= 100) {
       return {
         emoji: '🟢',
-        mensagem: 'Excelente! Sua evolução está brilhando!',
+        mensagem: 'Perfeito! Sua dedicação está transformando sua vida!',
         cor: 'text-green-600',
         categoria: 'excelente' as const,
       };
-    } else if (pontos >= 11) {
+    } else if (pontos >= 80) {
       return {
         emoji: '🟡',
-        mensagem: 'Você está no caminho! Continue assim.',
+        mensagem: 'Excelente progresso! Você está no caminho certo.',
         cor: 'text-yellow-600',
+        categoria: 'medio' as const,
+      };
+    } else if (pontos >= 60) {
+      return {
+        emoji: '🟠',
+        mensagem: 'Bom trabalho! Continue assim.',
+        cor: 'text-orange-600',
         categoria: 'medio' as const,
       };
     } else {
       return {
         emoji: '🔴',
-        mensagem: 'Hoje foi difícil, mas você não desistiu!',
+        mensagem: 'Hoje foi difícil, mas você não desistiu! Amanhã é uma nova oportunidade.',
         cor: 'text-red-600',
         categoria: 'baixa' as const,
       };

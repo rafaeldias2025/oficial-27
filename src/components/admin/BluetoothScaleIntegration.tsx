@@ -15,6 +15,7 @@ import {
   Activity,
   TrendingUp
 } from 'lucide-react';
+import { CircunferenciaAbdominalModal } from '@/components/CircunferenciaAbdominalModal';
 
 interface BluetoothDevice {
   id: string;
@@ -309,6 +310,15 @@ export const BluetoothScaleIntegration: React.FC = () => {
       return;
     }
 
+    // Mostrar modal para capturar circunferência abdominal
+    setShowCircunferenciaModal(true);
+  };
+
+  const [showCircunferenciaModal, setShowCircunferenciaModal] = useState(false);
+
+  const finalizarSalvamento = async (circunferencia: number) => {
+    if (!scaleData || !selectedUser) return;
+
     try {
       // Salvar na tabela pesagens
       const { error: pesagemError } = await supabase
@@ -335,15 +345,15 @@ export const BluetoothScaleIntegration: React.FC = () => {
         .eq('user_id', selectedUser)
         .single();
 
-      // Atualizar dados_saude_usuario com dados existentes
+      // Atualizar dados_saude_usuario com a circunferência capturada
       const { error: saudeError } = await supabase
         .from('dados_saude_usuario')
         .upsert({
           user_id: selectedUser,
           peso_atual_kg: scaleData.weight,
           imc: scaleData.bmi,
-          altura_cm: existingData?.altura_cm || 170, // Default se não existir
-          circunferencia_abdominal_cm: existingData?.circunferencia_abdominal_cm || 90, // Default
+          altura_cm: existingData?.altura_cm || 170,
+          circunferencia_abdominal_cm: circunferencia, // Usar valor capturado
           meta_peso_kg: existingData?.meta_peso_kg || scaleData.weight,
           data_atualizacao: new Date().toISOString()
         });
@@ -358,6 +368,7 @@ export const BluetoothScaleIntegration: React.FC = () => {
       // Limpar dados após salvar
       setScaleData(null);
       setSelectedUser('');
+      setShowCircunferenciaModal(false);
     } catch (error) {
       console.error('Erro ao salvar dados:', error);
       toast({
@@ -570,6 +581,14 @@ export const BluetoothScaleIntegration: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de Circunferência Abdominal */}
+      <CircunferenciaAbdominalModal
+        isOpen={showCircunferenciaModal}
+        onClose={() => setShowCircunferenciaModal(false)}
+        onSaved={finalizarSalvamento}
+        pesoAtual={scaleData?.weight}
+      />
     </div>
   );
 };
