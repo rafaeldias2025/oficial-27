@@ -14,6 +14,7 @@ import {
 import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
 import { format, parseISO, subDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { CustomTooltipProps } from '@/types/charts';
 
 interface DadosEvolucao {
   data: string;
@@ -85,23 +86,19 @@ export const EvolucaoSemanal: React.FC<EvolucaoSemanalProps> = ({
   const progressoPesoIcon = getIconeProgresso(progressoPeso);
   const progressoImcIcon = getIconeProgresso(progressoImc);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-instituto-border rounded-lg shadow-lg">
-          <p className="font-medium text-instituto-dark">{data.dataCompleta}</p>
-          <div className="space-y-1 text-sm">
-            <p className="text-instituto-orange">Peso: {payload[0].value}kg</p>
-            <p className="text-instituto-purple">IMC: {payload[1]?.value}</p>
-            {payload[2] && (
-              <p className="text-instituto-gold">Cintura: {payload[2].value}cm</p>
-            )}
-          </div>
-        </div>
-      );
-    }
-    return null;
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (!active || !payload?.length) return null;
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border">
+        <p className="font-semibold">{format(parseISO(label!), "dd 'de' MMMM", { locale: ptBR })}</p>
+        {payload.map((item, index) => (
+          <p key={index} className="text-sm">
+            {item.name}: {item.value} {item.unit || ''}
+          </p>
+        ))}
+      </div>
+    );
   };
 
   return (

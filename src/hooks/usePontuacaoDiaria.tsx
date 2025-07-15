@@ -1,9 +1,10 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useState, useEffect } from 'react';
 import { subDays, format } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from './useAuth';
+import { WeeklyRanking } from '@/types/points';
 
-export interface PontuacaoDiaria {
+interface PontuacaoDiaria {
   id: string;
   user_id: string;
   data: string;
@@ -25,191 +26,121 @@ export interface PontuacaoDiaria {
   updated_at: string;
 }
 
-export const usePontuacaoDiaria = () => {
+interface RankingData {
+  userId: string;
+  name: string;
+  avatar?: string;
+  pontos_dia: number[];
+  media_semanal: number;
+  posicao: number;
+  streak: number;
+}
+
+interface UserProfile {
+  id: string;
+  name: string;
+  avatar_url?: string;
+}
+
+export function usePontuacaoDiaria() {
+  const [pontuacao, setPontuacao] = useState<PontuacaoDiaria[]>([]);
+  const [ranking, setRanking] = useState<WeeklyRanking[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-  const queryClient = useQueryClient();
 
-  const { data: pontuacaoHoje, isLoading: isLoadingHoje } = useQuery({
-    queryKey: ['pontuacao-diaria', user?.id, format(new Date(), 'yyyy-MM-dd')],
-    queryFn: async () => {
-      if (!user?.id) return null;
+  useEffect(() => {
+    if (user) {
+      fetchPontuacao();
+    }
+  }, [user]);
+
+  const fetchPontuacao = async () => {
+    try {
+      setIsLoading(true);
+      const dataInicial = format(subDays(new Date(), 7), 'yyyy-MM-dd');
       
       const { data, error } = await supabase
         .from('pontuacao_diaria')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('data', format(new Date(), 'yyyy-MM-dd'))
-        .maybeSingle();
-
-      if (error) {
-        console.error('Erro ao buscar pontuação de hoje:', error);
-        return null;
-      }
-
-      return data as PontuacaoDiaria | null;
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: historicoPontuacao, isLoading: isLoadingHistorico } = useQuery({
-    queryKey: ['historico-pontuacao', user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      
-      const dataInicio = format(subDays(new Date(), 30), 'yyyy-MM-dd');
-      
-      const { data, error } = await supabase
-        .from('pontuacao_diaria')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('data', dataInicio)
+        .eq('user_id', user?.id)
+        .gte('data', dataInicial)
         .order('data', { ascending: true });
 
-      if (error) {
-        console.error('Erro ao buscar histórico de pontuação:', error);
-        return [];
-      }
+      if (error) throw error;
 
-      return data as PontuacaoDiaria[];
-    },
-    enabled: !!user?.id,
-  });
+      setPontuacao(data as PontuacaoDiaria[] || []);
+      await fetchRanking();
+    } catch (error) {
+      console.error('Erro ao buscar pontuação:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const { data: rankingSemanal, isLoading: isLoadingRanking } = useQuery({
-    queryKey: ['ranking-semanal'],
-    queryFn: async () => {
-      const dataInicio = format(subDays(new Date(), 7), 'yyyy-MM-dd');
-      
+  const fetchRanking = async () => {
+    try {
       const { data, error } = await supabase
         .from('pontuacao_diaria')
         .select(`
           user_id,
           total_pontos_dia,
           data,
-          profiles!inner(full_name, email)
+          users:profiles!inner(
+            name,
+            avatar_url
+          )
         `)
-        .gte('data', dataInicio)
-        .order('total_pontos_dia', { ascending: false });
+        .gte('data', format(subDays(new Date(), 7), 'yyyy-MM-dd'));
 
-      if (error) {
-        console.error('Erro ao buscar ranking semanal:', error);
-        return [];
-      }
+      if (error) throw error;
 
-      // Agrupar por usuário e calcular média semanal
-      const rankingAgrupado = data.reduce((acc: any, item: any) => {
+      // Agrupar pontuação por usuário
+      const rankingAgrupado = (data || []).reduce((acc: Record<string, RankingData>, item: any) => {
         const userId = item.user_id;
         if (!acc[userId]) {
           acc[userId] = {
-            user_id: userId,
-            nome: item.profiles.full_name || item.profiles.email,
-            pontos: [],
-            total_pontos: 0,
+            userId,
+            name: item.users?.name || 'Usuário',
+            avatar: item.users?.avatar_url,
+            pontos_dia: [],
             media_semanal: 0,
+            posicao: 0,
+            streak: 0
           };
         }
-        acc[userId].pontos.push(item.total_pontos_dia);
-        acc[userId].total_pontos += item.total_pontos_dia;
+        acc[userId].pontos_dia.push(item.total_pontos_dia);
         return acc;
       }, {});
 
       // Calcular média e ordenar
-      const rankingFinal = Object.values(rankingAgrupado).map((user: any) => ({
-        ...user,
-        media_semanal: Math.round(user.total_pontos / user.pontos.length),
-      })).sort((a: any, b: any) => b.media_semanal - a.media_semanal);
+      const rankingFinal = Object.values(rankingAgrupado)
+        .map((user) => ({
+          ...user,
+          media_semanal: user.pontos_dia.reduce((a, b) => a + b, 0) / user.pontos_dia.length
+        }))
+        .sort((a, b) => b.media_semanal - a.media_semanal)
+        .map((user, index) => ({
+          userId: user.userId,
+          name: user.name,
+          avatar: user.avatar,
+          weeklyPoints: Math.round(user.media_semanal),
+          position: index + 1,
+          streak: user.streak,
+          weekStartDate: format(subDays(new Date(), 7), 'yyyy-MM-dd'),
+          weekEndDate: format(new Date(), 'yyyy-MM-dd'),
+          categories: {}
+        }));
 
-      return rankingFinal;
-    },
-  });
-
-  const criarPontuacaoMutation = useMutation({
-    mutationFn: async (pontuacao: Partial<PontuacaoDiaria>) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
-
-      const { data, error } = await supabase
-        .from('pontuacao_diaria')
-        .insert({
-          user_id: user.id,
-          data: format(new Date(), 'yyyy-MM-dd'),
-          ...pontuacao,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pontuacao-diaria'] });
-      queryClient.invalidateQueries({ queryKey: ['historico-pontuacao'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-semanal'] });
-    },
-  });
-
-  const atualizarPontuacaoMutation = useMutation({
-    mutationFn: async (pontuacao: Partial<PontuacaoDiaria>) => {
-      if (!user?.id) throw new Error('Usuário não autenticado');
-
-      const { data, error } = await supabase
-        .from('pontuacao_diaria')
-        .update(pontuacao)
-        .eq('user_id', user.id)
-        .eq('data', format(new Date(), 'yyyy-MM-dd'))
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pontuacao-diaria'] });
-      queryClient.invalidateQueries({ queryKey: ['historico-pontuacao'] });
-      queryClient.invalidateQueries({ queryKey: ['ranking-semanal'] });
-    },
-  });
-
-  const getFeedbackPontuacao = (pontos: number) => {
-    if (pontos >= 100) {
-      return {
-        emoji: '🟢',
-        mensagem: 'Perfeito! Sua dedicação está transformando sua vida!',
-        cor: 'text-green-600',
-        categoria: 'excelente' as const,
-      };
-    } else if (pontos >= 80) {
-      return {
-        emoji: '🟡',
-        mensagem: 'Excelente progresso! Você está no caminho certo.',
-        cor: 'text-yellow-600',
-        categoria: 'medio' as const,
-      };
-    } else if (pontos >= 60) {
-      return {
-        emoji: '🟠',
-        mensagem: 'Bom trabalho! Continue assim.',
-        cor: 'text-orange-600',
-        categoria: 'medio' as const,
-      };
-    } else {
-      return {
-        emoji: '🔴',
-        mensagem: 'Hoje foi difícil, mas você não desistiu! Amanhã é uma nova oportunidade.',
-        cor: 'text-red-600',
-        categoria: 'baixa' as const,
-      };
+      setRanking(rankingFinal);
+    } catch (error) {
+      console.error('Erro ao buscar ranking:', error);
     }
   };
 
   return {
-    pontuacaoHoje,
-    historicoPontuacao,
-    rankingSemanal,
-    isLoadingHoje,
-    isLoadingHistorico,
-    isLoadingRanking,
-    criarPontuacao: criarPontuacaoMutation.mutate,
-    atualizarPontuacao: atualizarPontuacaoMutation.mutate,
-    getFeedbackPontuacao,
+    pontuacao,
+    ranking,
+    isLoading,
+    fetchPontuacao
   };
-};
+}

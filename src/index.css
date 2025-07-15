@@ -8,90 +8,49 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 15 10% 7%;
-    --foreground: 0 0% 98%;
-
-    --card: 15 8% 12%;
-    --card-foreground: 0 0% 98%;
-
-    --popover: 15 8% 12%;
-    --popover-foreground: 0 0% 98%;
-
-    --primary: 16 68% 54%;
+    /* Cores principais do Instituto */
+    --instituto-orange: 16 85% 57%; /* Laranja principal */
+    --instituto-orange-hover: 16 85% 52%; /* Laranja mais escuro para hover */
+    --instituto-orange-light: 16 85% 95%; /* Laranja suave para backgrounds */
+    
+    /* Cores de suporte */
+    --instituto-purple: 264 47% 65%; /* Roxo para destaques secundários */
+    --instituto-purple-light: 264 47% 95%; /* Roxo suave para backgrounds */
+    --instituto-gold: 45 93% 67%; /* Dourado para elementos especiais */
+    --instituto-gold-light: 45 93% 95%; /* Dourado suave para backgrounds */
+    
+    /* Tons neutros */
+    --instituto-dark: 220 13% 10%; /* Cinza escuro quase preto */
+    --instituto-gray: 220 13% 30%; /* Cinza médio */
+    --instituto-light: 220 13% 98%; /* Branco levemente acinzentado */
+    
+    /* Cores de feedback */
+    --success: 142 72% 45%; /* Verde */
+    --success-light: 142 72% 95%;
+    --warning: 45 93% 47%; /* Amarelo */
+    --warning-light: 45 93% 95%;
+    --error: 0 84% 60%; /* Vermelho */
+    --error-light: 0 84% 95%;
+    
+    /* Cores de interface */
+    --background: 0 0% 100%;
+    --foreground: 220 13% 10%;
+    --muted: 220 13% 95%;
+    --muted-foreground: 220 13% 40%;
+    --border: 220 13% 90%;
+    --input: 220 13% 95%;
+    
+    /* Cores de componentes */
+    --card: 0 0% 100%;
+    --card-foreground: 220 13% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 13% 10%;
+    --primary: 16 85% 57%;
     --primary-foreground: 0 0% 100%;
     
-    /* Cores oficiais Instituto dos Sonhos */
-    --instituto-orange: 16 85% 57%; /* #d9633b */
-    --instituto-orange-hover: 16 85% 52%;
-    --instituto-orange-light: 25 90% 85%;
-    --instituto-purple: 264 47% 65%; /* roxo suave para destaques */
-    --instituto-purple-light: 264 47% 75%;
-    --instituto-lilac: 280 40% 80%; /* lilás suave */
-    --instituto-lilac-light: 280 30% 90%;
-    --instituto-green: 120 50% 50%; /* verde para progresso */
-    --instituto-green-light: 120 50% 60%;
-    --instituto-light: 45 100% 98%;
-    --instituto-dark: 0 0% 7%;
-    --instituto-gold: 45 93% 67%;
-    --instituto-warm: 32 89% 89%;
-    --instituto-cream: 45 50% 95%;
-    
-    /* Cores especiais para Diário da Saúde */
-    --diary-warm: 25 85% 88%; /* laranja claro acolhedor */
-    --diary-lilac: 280 40% 85%; /* lilás suave */
-    --diary-glow: 25 85% 70%; /* brilho laranja */
-    
-    /* Netflix-style dark theme with better contrast */
-    --netflix-dark: 0 0% 7%;
-    --netflix-card: 0 0% 12%;
-    --netflix-text: 0 0% 98%;
-    --netflix-text-muted: 0 0% 85%;
-    --netflix-hover: 0 0% 18%;
-    --netflix-border: 0 0% 25%;
-    
-    /* Category colors with better contrast */
-    --nutrition: 120 65% 55%;
-    --psychology: 270 75% 70%;
-    --wellness: 150 50% 60%;
-    --fitness: 30 95% 65%;
-    --mindfulness: 200 85% 70%;
-
-    /* XP and Gamification colors */
-    --xp-gold: 45 100% 65%;
-    --xp-silver: 240 10% 80%;
-    --xp-bronze: 25 85% 65%;
-
-    /* Missions colors */
-    --mission-complete: 120 50% 50%;
-    --mission-pending: 45 100% 65%;
-    --mission-locked: 0 0% 40%;
-
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 0 0% 25%; /* melhor contrast */
-    --muted-foreground: 0 0% 75%; /* melhor contrast */
-
-    --accent: 16 68% 54%;
-    --accent-foreground: 0 0% 100%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 0 0% 25%; /* melhor contrast */
-    --input: 0 0% 18%; /* melhor contrast */
-    --ring: 16 68% 54%;
-
-    --radius: 8px;
-
-    --sidebar-background: 15 8% 10%;
-    --sidebar-foreground: 0 0% 90%;
-    --sidebar-primary: 16 68% 54%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 0 0% 18%;
-    --sidebar-accent-foreground: 0 0% 90%;
-    --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 16 68% 54%;
+    /* Gradientes */
+    --gradient-warm: linear-gradient(135deg, hsl(16 85% 57%), hsl(45 93% 67%));
+    --gradient-cool: linear-gradient(135deg, hsl(264 47% 65%), hsl(16 85% 57%));
   }
 
   .light {
@@ -269,5 +228,30 @@ All colors MUST be HSL.
 
   .pulse-glow {
     @apply animate-glow;
+  }
+}
+
+/* Componentes com as novas cores */
+@layer components {
+  .instituto-button {
+    @apply bg-instituto-orange hover:bg-instituto-orange-hover text-white 
+           font-semibold rounded-lg px-4 py-2 transition-all duration-300
+           shadow-sm hover:shadow-md;
+  }
+  
+  .instituto-card {
+    @apply bg-white rounded-lg border border-border shadow-sm
+           hover:shadow-md transition-all duration-300;
+  }
+  
+  .instituto-input {
+    @apply bg-input border border-border rounded-lg px-3 py-2
+           focus:ring-2 focus:ring-instituto-orange/20 focus:border-instituto-orange
+           transition-all duration-300;
+  }
+  
+  .instituto-link {
+    @apply text-instituto-orange hover:text-instituto-orange-hover
+           underline-offset-4 hover:underline transition-colors duration-300;
   }
 }

@@ -5,6 +5,7 @@ import { Calendar, TrendingUp, Target } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { PontuacaoDiaria } from '@/hooks/usePontuacaoDiaria';
+import { CustomTooltipProps } from '@/types/charts';
 
 interface EvolucaoSemanalPontuacaoProps {
   dados: PontuacaoDiaria[];
@@ -48,18 +49,19 @@ export const EvolucaoSemanalPontuacao: React.FC<EvolucaoSemanalPontuacaoProps> =
     atual.total_pontos_dia > melhor.total_pontos_dia ? atual : melhor
   , dados[0] || { total_pontos_dia: 0, data: '' });
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-instituto-border rounded-lg shadow-lg">
-          <p className="font-medium text-instituto-dark">{data.dataCompleta}</p>
-          <p className="text-instituto-orange font-bold">{payload[0].value} pontos</p>
-          <p className="text-sm text-instituto-dark/60 capitalize">{data.categoria}</p>
-        </div>
-      );
-    }
-    return null;
+  const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+    if (!active || !payload?.length) return null;
+
+    return (
+      <div className="bg-white p-4 rounded-lg shadow-lg border">
+        <p className="font-semibold">{format(parseISO(label!), "dd 'de' MMMM", { locale: ptBR })}</p>
+        {payload.map((item, index) => (
+          <p key={index} className="text-sm">
+            {item.name}: {item.value} pontos
+          </p>
+        ))}
+      </div>
+    );
   };
 
   return (

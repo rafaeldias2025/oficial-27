@@ -27,31 +27,56 @@ const HomePage = () => {
   
   return <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="container mx-auto px-6 py-4">
+      <header className="container mx-auto px-6 py-4 bg-white border-b border-border">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img src={butterflyLogo} alt="Instituto dos Sonhos" className="w-8 h-8" />
+            <div 
+              className="relative cursor-pointer group" 
+              onClick={() => setShowAdminDialog(true)}
+              title="Acesso Administrativo"
+            >
+              <img 
+                src={butterflyLogo} 
+                alt="Instituto dos Sonhos" 
+                className="w-8 h-8 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-12" 
+              />
+              <div className="absolute -inset-2 bg-instituto-orange-light/0 rounded-full 
+                            group-hover:bg-instituto-orange-light/50 transition-all duration-300" />
+            </div>
             <span className="text-xl font-bold text-instituto-dark">Instituto dos Sonhos</span>
           </div>
           <nav className="flex gap-4 items-center">
             <ThemeToggle />
-            <Button variant="ghost" className="text-instituto-dark">Home</Button>
-            <Link to="/admin">
-              <Button variant="outline" className="border-instituto-dark hover:bg-instituto-dark text-slate-200">
-                <Crown className="mr-2 h-4 w-4" />
-                Admin
-              </Button>
-            </Link>
+            <Button variant="ghost" className="text-instituto-dark hover:bg-instituto-orange-light">
+              Home
+            </Button>
             {user ? (
-              <Link to="/dashboard">
-                <Button variant="default" className="bg-instituto-orange hover:bg-instituto-orange-hover">
-                  <Target className="mr-2 h-4 w-4" />
-                  Dashboard
-                </Button>
-              </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="instituto-button">
+                    <User className="mr-2 h-4 w-4" />
+                    Menu
+                    <ChevronDown className="ml-2 h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-white border border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="flex items-center text-instituto-dark hover:bg-instituto-orange-light">
+                      <Target className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" className="flex items-center text-instituto-dark hover:bg-instituto-orange-light">
+                      <Crown className="mr-2 h-4 w-4" />
+                      Admin
+                    </Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Link to="/auth">
-                <Button variant="default" className="bg-instituto-orange hover:bg-instituto-orange-hover">
+                <Button className="instituto-button">
                   <User className="mr-2 h-4 w-4" />
                   Entrar
                 </Button>
